@@ -45,15 +45,15 @@ uint32_t Renderer::PerPixel(const glm::vec2& coord)
     const auto r = static_cast<uint8_t>(coord.x * 255.0f);
     const auto g = static_cast<uint8_t>(coord.y * 255.0f);
 
-    glm::vec3 rayOrigin(0.0f, 0.0f, 2.0f);
-    glm::vec3 rayDirection(coord.x, coord.y, -1.0f);
-    float radius = 0.5f;
+    const glm::vec3 rayOrigin(0.0f, 0.0f, 2.0f);
+    const glm::vec3 rayDirection(coord.x, coord.y, -1.0f);
+    constexpr float radius = 0.5f;
 
-    float a = glm::dot(rayDirection, rayDirection);
-    float b = 2.0f * glm::dot(rayOrigin, rayDirection);
-    float c = glm::dot(rayOrigin, rayOrigin) - (radius * radius);
+    const float a = glm::dot(rayDirection, rayDirection);
+    const float b = 2.0f * glm::dot(rayOrigin, rayDirection);
+    const float c = glm::dot(rayOrigin, rayOrigin) - (radius * radius);
 
-    float discriminant = (b * b) - 4.0f * a * c;
+    const float discriminant = (b * b) - 4.0f * a * c;
 
     if(discriminant >= 0.0f)
         return 0xff000000 | (g << 8) | r;
