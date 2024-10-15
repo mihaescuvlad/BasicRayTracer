@@ -1,7 +1,7 @@
 project "BasicRayTracer"
    kind "ConsoleApp"
    language "C++"
-   cppdialect "C++17"
+   cppdialect "C++latest"
    targetdir "bin/%{cfg.buildcfg}"
    staticruntime "off"
 
