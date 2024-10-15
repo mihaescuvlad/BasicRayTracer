@@ -33,19 +33,21 @@ void Renderer::Render() const
             };
             coord = coord * 2.0f - 1.0f; // -1 -> 1
 
-            m_ImageData[x + y * m_FinalImage->GetWidth()] = PerPixel(coord);
+            glm::vec4 color = PerPixel(coord);
+            color = glm::clamp(color, glm::vec4(0.0f), glm::vec4(1.0f));
+            m_ImageData[x + y * m_FinalImage->GetWidth()] = Utils::ConvertToRGBA(color);
         }
     }
 
     m_FinalImage->SetData(m_ImageData);
 }
 
-uint32_t Renderer::PerPixel(const glm::vec2& coord)
+glm::vec4 Renderer::PerPixel(const glm::vec2& coord)
 {
     const auto r = static_cast<uint8_t>(coord.x * 255.0f);
     const auto g = static_cast<uint8_t>(coord.y * 255.0f);
 
-    const glm::vec3 rayOrigin(0.0f, 0.0f, 2.0f);
+    const glm::vec3 rayOrigin(0.0f, 0.0f, 1.0f);
     const glm::vec3 rayDirection(coord.x, coord.y, -1.0f);
     constexpr float radius = 0.5f;
 
@@ -55,8 +57,21 @@ uint32_t Renderer::PerPixel(const glm::vec2& coord)
 
     const float discriminant = (b * b) - 4.0f * a * c;
 
-    if(discriminant >= 0.0f)
-        return 0xff000000 | (g << 8) | r;
+    if (discriminant < 0.0f)
+        return {0, 0, 0, 1};
 
-    return 0xff000000;
+    float t0 = (-b + glm::sqrt(discriminant)) / (2.0f * a);
+    const float closestT = (-b - glm::sqrt(discriminant)) / (2.0f * a);
+
+    const glm::vec3 hitPoint = rayOrigin + rayDirection * closestT;
+    const glm::vec3 normal = glm::normalize(hitPoint);
+
+    const glm::vec3 lightDir = glm::normalize(glm::vec3(-1, -1, -1));
+
+    float d = glm::max(glm::dot(normal, -lightDir), 0.0f); // == cos(angle)
+
+    glm::vec3 sphereColor(0, 1, 1);
+    sphereColor *= d;
+
+    return { sphereColor, 1.0f };
 }
