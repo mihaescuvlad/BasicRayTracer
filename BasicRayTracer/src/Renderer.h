@@ -5,6 +5,8 @@
 #include <glm/vec2.hpp>
 #include <glm/vec4.hpp>
 
+#include "Camera.h"
+#include "Ray.h"
 #include "Walnut/Image.h"
 
 namespace Utils
@@ -27,11 +29,11 @@ public:
     Renderer() = default;
 
     void OnResize(uint32_t width, uint32_t height);
-    void Render() const;
+    void Render(const Camera& camera) const;
 
     std::shared_ptr<Walnut::Image> GetFinalImage() const { return m_FinalImage; }
 private:
-    static glm::vec4 PerPixel(const glm::vec2& coord);
+    static glm::vec4 TraceRay(const Ray& ray);
 private:
     std::shared_ptr<Walnut::Image> m_FinalImage;
     uint32_t* m_ImageData = nullptr;
