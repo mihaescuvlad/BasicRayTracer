@@ -2,9 +2,11 @@
 #define SCENE_H
 
 #include <vector>
-#include <variant>
 
 #include <glm/vec3.hpp>
+
+#include "shape/IShape.h"
+#include "shape/ui/IShapeUIController.h"
 
 struct Material
 {
@@ -17,19 +19,19 @@ struct Material
     glm::vec3 GetEmission() const { return EmissionColor * EmissionPower; }
 };
 
-struct Sphere
-{
-    glm::vec3 Position{ 0.0f };
-    float Radius = 0.5f;
-
-    int MaterialIndex = 0;
-};
-
 struct Scene
 {
-    std::vector<Sphere> Spheres;
+    std::vector<std::unique_ptr<IShape>> Shapes;
+    std::vector<std::unique_ptr<IShapeUIController>> UIControllers;
+
     std::vector<Material> Materials;
     glm::vec3 SkyColor;
+
+    void AddShape(std::unique_ptr<IShape> shape, std::unique_ptr<IShapeUIController> uiController)
+    {
+        Shapes.push_back(std::move(shape));
+        UIControllers.push_back(std::move(uiController));
+    }
 };
 
 #endif

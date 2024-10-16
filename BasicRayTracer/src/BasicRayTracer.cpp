@@ -11,6 +11,11 @@
 #include <ranges>
 #include <glm/gtc/type_ptr.hpp>
 
+#include "shape/Plane.h"
+#include "shape/Sphere.h"
+#include "shape/ui/PlaneUIController.h"
+#include "shape/ui/SphereUIController.h"
+
 using namespace Walnut;
 
 class ExampleLayer final : public Walnut::Layer
@@ -21,46 +26,41 @@ public:
     {
         m_Scene.SkyColor = glm::vec3(0.6f, 0.7f, 0.9f);
 
-        Material& blueSphere =  m_Scene.Materials.emplace_back();
-        blueSphere.Albedo = { 0.0f, 1.0f, 1.0f };
-        blueSphere.Roughness = 0.0f;
+        Material& blueSphereMat =  m_Scene.Materials.emplace_back();
+        blueSphereMat.Albedo = { 1.0f, 1.0f, 1.0f };
+        blueSphereMat.Roughness = 0.7f;
 
-        Material& ground = m_Scene.Materials.emplace_back();
-        ground.Albedo = { 0.5f, 0.3f, 0.2f };
-        ground.Roughness = 0.1f;
+        Material& groundMat = m_Scene.Materials.emplace_back();
+        groundMat.Albedo = { 0.5f, 0.3f, 0.2f };
+        groundMat.Roughness = 1.0f;
 
-        Material& lightBulb = m_Scene.Materials.emplace_back();
-        lightBulb.Albedo = { 0.8f, 0.5f, 0.2f };
-        lightBulb.Roughness = 0.1f;
-        lightBulb.EmissionColor = lightBulb.Albedo;
-        lightBulb.EmissionPower = 2.0f;
+        Material& lightBulbMat = m_Scene.Materials.emplace_back();
+        lightBulbMat.Albedo = { 0.8f, 0.5f, 0.2f };
+        lightBulbMat.Roughness = 0.1f;
+        lightBulbMat.EmissionColor = lightBulbMat.Albedo;
+        lightBulbMat.EmissionPower = 2.0f;
 
-        {
-            Sphere sphere;
-            sphere.Position = { 0.0f, 0.0f, 0.0f };
-            sphere.Radius = 1.0f;
-            sphere.MaterialIndex = 0;
+        Material& lightBulbMat2 = m_Scene.Materials.emplace_back();
+        lightBulbMat2.Albedo = { 0.0f, 1.0f, 1.0f };
+        lightBulbMat2.Roughness = 0.1f;
+        lightBulbMat2.EmissionColor = lightBulbMat2.Albedo;
+        lightBulbMat2.EmissionPower = 2.0f;
 
-            m_Scene.Spheres.push_back(sphere);
-        }
+        auto blueSphere = std::make_unique<Sphere>(glm::vec3(0.0f, 0.0f, 0.0f), 1.0f, 0);
+        auto blueSphereUi = std::make_unique<SphereUIController>(*blueSphere);
+        m_Scene.AddShape(std::move(blueSphere), std::move(blueSphereUi));
 
-        {
-            Sphere sphere;
-            sphere.Position = { 0.0f, -101.0f, 0.0f };
-            sphere.Radius = 100.0f;
-            sphere.MaterialIndex = 1;
+        auto ground = std::make_unique<Plane>(glm::vec3(0.0f, 1.0f, 0.0f), -1.0f, 1);
+        auto groundUi = std::make_unique<PlaneUIController>(*ground);
+        m_Scene.AddShape(std::move(ground), std::move(groundUi));
 
-            m_Scene.Spheres.push_back(sphere);
-        }
+        auto lightBulb = std::make_unique<Sphere>(glm::vec3(2.0f, 0.0f, 0.0f), 1.0f, 2);
+        auto lightBulbUi = std::make_unique<SphereUIController>(*lightBulb);
+        m_Scene.AddShape(std::move(lightBulb), std::move(lightBulbUi));
 
-        {
-            Sphere sphere;
-            sphere.Position = { 2.0f, 0.0f, 0.0f };
-            sphere.Radius = 1.0f;
-            sphere.MaterialIndex = 2;
-
-            m_Scene.Spheres.push_back(sphere);
-        }
+        auto lightBulb2 = std::make_unique<Sphere>(glm::vec3(-2.0f, 0.0f, 0.0f), 1.0f, 3);
+        auto lightBulbUi2 = std::make_unique<SphereUIController>(*lightBulb2);
+        m_Scene.AddShape(std::move(lightBulb2), std::move(lightBulbUi2));
     }
 
     virtual void OnUpdate(const float ts) override
@@ -84,16 +84,14 @@ public:
         ImGui::End();
 
         ImGui::Begin("Scene");
-
         ImGui::ColorEdit3("Sky Color", glm::value_ptr(m_Scene.SkyColor));
+        ImGui::Separator();
 
-        for (auto&& [i, sphere] : m_Scene.Spheres | std::views::enumerate)
+        for (auto&& [i, sphere] : m_Scene.Shapes | std::views::enumerate)
         {
             ImGui::PushID(static_cast<int>(i));
 
-            ImGui::DragFloat3("Position", glm::value_ptr(sphere.Position), 0.1f);
-            ImGui::DragFloat("Radius", &sphere.Radius, 0.1f);
-            ImGui::DragInt("Material", &sphere.MaterialIndex, 1.0f, 0, static_cast<int>(m_Scene.Materials.size()) - 1);
+            m_Scene.UIControllers[i]->RenderUI();
 
             ImGui::Separator();
 
